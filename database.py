@@ -5,6 +5,7 @@ def conectar_db():
     conn = sqlite3.connect('loja.db')
     return conn
 
+
 # Criação das tabelas
 def criar_tabelas():
     conn = conectar_db()
