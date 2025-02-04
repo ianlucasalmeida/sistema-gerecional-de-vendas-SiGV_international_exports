@@ -1,9 +1,7 @@
 import sys
 import os
-
 # Adiciona o diretório raiz do projeto ao caminho de busca do Python
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import tkinter as tk
 from tkinter import ttk, messagebox
 from entities.comprador import cadastrar_comprador, listar_compradores
@@ -73,7 +71,6 @@ def cadastrar_venda_gui():
     id_carro = combo_carro.get().split(" - ")[0]
     data_venda = entry_data_venda.get()
     valor_total = entry_valor_total.get()
-
     resultado = cadastrar_venda(id_comprador, id_vendedor, id_carro, data_venda, float(valor_total))
     messagebox.showinfo("Resultado", resultado)
 
@@ -88,6 +85,53 @@ def gerar_relatorios_gui():
     resultado = gerar_relatorio_vendas_pdf(vendas)
     messagebox.showinfo("Resultado", resultado)
 
+# Função para buscar informações com base nas opções selecionadas
+def buscar_informacoes():
+    entidade = combo_busca.get()
+    termo = entry_termo_busca.get()
+
+    # Verifica quais colunas foram selecionadas
+    colunas_selecionadas = []
+    if var_id.get():
+        colunas_selecionadas.append("ID")
+    if var_nome.get():
+        colunas_selecionadas.append("Nome")
+    if var_cpf.get():
+        colunas_selecionadas.append("CPF")
+    if var_data_nascimento.get():
+        colunas_selecionadas.append("Data de Nascimento")
+
+    resultados = []
+    if entidade == "Comprador":
+        compradores = listar_compradores()
+        for comprador in compradores:
+            if termo.lower() in str(comprador).lower():
+                resultado_filtrado = [str(comprador[i]) for i, coluna in enumerate(colunas_selecionadas)]
+                resultados.append(", ".join(resultado_filtrado))
+    elif entidade == "Vendedor":
+        vendedores = listar_vendedores()
+        for vendedor in vendedores:
+            if termo.lower() in str(vendedor).lower():
+                resultado_filtrado = [str(vendedor[i]) for i, coluna in enumerate(colunas_selecionadas)]
+                resultados.append(", ".join(resultado_filtrado))
+    elif entidade == "Carro":
+        carros = listar_carros()
+        for carro in carros:
+            if termo.lower() in str(carro).lower():
+                resultado_filtrado = [str(carro[i]) for i, coluna in enumerate(colunas_selecionadas)]
+                resultados.append(", ".join(resultado_filtrado))
+    elif entidade == "Venda":
+        vendas = listar_vendas()
+        for venda in vendas:
+            if termo.lower() in str(venda).lower():
+                resultado_filtrado = [str(venda[i]) for i, coluna in enumerate(colunas_selecionadas)]
+                resultados.append(", ".join(resultado_filtrado))
+
+    lista_resultados.delete(0, tk.END)
+    for resultado in resultados:
+        lista_resultados.insert(tk.END, resultado)
+
+# Função para configurar o nome da loja
 def configurar_nome_loja():
     nome_loja = entry_nome_loja.get()
     definir_nome_loja(nome_loja)
@@ -95,7 +139,7 @@ def configurar_nome_loja():
 
 # Interface Principal
 root = tk.Tk()
-root.title("Sistema de Loja")
+root.title("Sistema Gerencial de Vendas de Veículos - SiGVe")
 root.geometry("800x600")
 
 # Abas
@@ -212,6 +256,32 @@ tk.Button(aba_venda, text="Gerar Relatório", command=gerar_relatorios_gui).grid
 lista_vendas = tk.Listbox(aba_venda, width=100, height=10)
 lista_vendas.grid(row=7, column=0, columnspan=2)
 
+# Interface para Busca
+tk.Label(aba_busca, text="Entidade").grid(row=0, column=0)
+combo_busca = ttk.Combobox(aba_busca, state="readonly")
+combo_busca.grid(row=0, column=1)
+combo_busca['values'] = ["Comprador", "Vendedor", "Carro", "Venda"]
+
+tk.Label(aba_busca, text="Termo de Busca").grid(row=1, column=0)
+entry_termo_busca = tk.Entry(aba_busca)
+entry_termo_busca.grid(row=1, column=1)
+
+# Checkbuttons para selecionar colunas
+var_id = tk.BooleanVar()
+var_nome = tk.BooleanVar()
+var_cpf = tk.BooleanVar()
+var_data_nascimento = tk.BooleanVar()
+
+tk.Checkbutton(aba_busca, text="ID", variable=var_id).grid(row=2, column=0, sticky="w")
+tk.Checkbutton(aba_busca, text="Nome", variable=var_nome).grid(row=3, column=0, sticky="w")
+tk.Checkbutton(aba_busca, text="CPF", variable=var_cpf).grid(row=4, column=0, sticky="w")
+tk.Checkbutton(aba_busca, text="Data de Nascimento", variable=var_data_nascimento).grid(row=5, column=0, sticky="w")
+
+tk.Button(aba_busca, text="Buscar", command=buscar_informacoes).grid(row=6, column=0)
+tk.Button(aba_busca, text="Gerar PDF", command=lambda: None).grid(row=6, column=1)  # Placeholder
+
+lista_resultados = tk.Listbox(aba_busca, width=100, height=10)
+lista_resultados.grid(row=7, column=0, columnspan=2)
 
 # Interface para Configurações
 tk.Label(aba_configuracoes, text="Nome da Loja").grid(row=0, column=0)
@@ -224,10 +294,7 @@ tk.Button(aba_configuracoes, text="Salvar", command=configurar_nome_loja).grid(r
 nome_loja_atual = obter_nome_loja()
 tk.Label(aba_configuracoes, text=f"Nome Atual: {nome_loja_atual}").grid(row=2, column=0, columnspan=2)
 
-
 # Botão para Popular o Banco de Dados
 tk.Button(root, text="Popular Banco de Dados", command=seed_database).pack(side=tk.BOTTOM, pady=10)
 
 root.mainloop()
-
-    

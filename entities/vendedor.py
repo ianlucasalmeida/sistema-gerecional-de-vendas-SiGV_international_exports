@@ -2,19 +2,45 @@ from database import conectar_db
 from utils import validar_cpf
 
 def cadastrar_vendedor(nome, cpf, data_nascimento):
-    if not validar_cpf(cpf):
-        return "CPF inválido!"
-
+    """
+    Cadastra um novo vendedor no banco de dados.
+    
+    Parâmetros:
+    - nome: Nome do vendedor.
+    - cpf: CPF do vendedor.
+    - data_nascimento: Data de nascimento do vendedor.
+    
+    Retorna:
+    - Uma mensagem indicando sucesso ou falha no cadastro.
+    """
     conn = conectar_db()
     cursor = conn.cursor()
     try:
-        cursor.execute('INSERT INTO vendedor (cpf, nome, data_nascimento) VALUES (?, ?, ?)', (cpf, nome, data_nascimento))
+        cursor.execute('''
+            INSERT INTO vendedor (cpf, nome, data_nascimento)
+            VALUES (?, ?, ?)
+        ''', (cpf, nome, data_nascimento))
         conn.commit()
         return "Vendedor cadastrado com sucesso!"
-    except sqlite3.IntegrityError:
-        return "CPF já cadastrado!"
+    except Exception as e:
+        conn.rollback()
+        return f"Erro ao cadastrar vendedor: {str(e)}"
     finally:
         conn.close()
+
+def listar_vendedores():
+    """
+    Lista todos os vendedores cadastrados no banco de dados.
+    
+    Retorna:
+    - Uma lista de tuplas contendo os dados dos vendedores.
+    """
+    conn = conectar_db()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM vendedor')
+    vendedores = cursor.fetchall()
+    conn.close()
+    return vendedores
 
 def listar_vendedores():
     conn = conectar_db()

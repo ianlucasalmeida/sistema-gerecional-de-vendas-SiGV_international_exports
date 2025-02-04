@@ -2,17 +2,17 @@ from database import conectar_db
 from utils import validar_cpf
 
 def cadastrar_comprador(nome, cpf, data_nascimento):
-    if not validar_cpf(cpf):
-        return "CPF inválido!"
-
     conn = conectar_db()
     cursor = conn.cursor()
     try:
-        cursor.execute('INSERT INTO comprador (cpf, nome, data_nascimento) VALUES (?, ?, ?)', (cpf, nome, data_nascimento))
+        cursor.execute('''
+            INSERT INTO comprador (cpf, nome, data_nascimento)
+            VALUES (?, ?, ?)
+        ''', (cpf, nome, data_nascimento))
         conn.commit()
         return "Comprador cadastrado com sucesso!"
     except sqlite3.IntegrityError:
-        return "CPF já cadastrado!"
+        return "Erro: CPF já cadastrado."
     finally:
         conn.close()
 
